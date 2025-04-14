@@ -8,6 +8,8 @@ object MyApp extends ZIOAppDefault {
     for {
       env <- ManagedSource.layer("src/main/resources/input.txt").build
       _ <- env.get[ManagedSource].source
+      lines = env.get[ManagedSource].listBuffer.toList
+      _ <-  ZIO.log(lines.mkString("\n")) 
       
 //      env    <- Reader.layer("src/main/resources/input.txt").build
 //      lines     <- env.get[Reader].getLines

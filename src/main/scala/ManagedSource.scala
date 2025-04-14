@@ -1,6 +1,7 @@
 import zio.{IO, RIO, RLayer, Scope, Task, TaskLayer, UIO, ULayer, ZIO, ZLayer}
 
 import java.nio.file.Paths
+import scala.collection.mutable.ListBuffer
 import scala.io.{BufferedSource, Source}
 
 //final case class Reader(source: RIO[Scope, BufferedSource]) {
@@ -28,6 +29,9 @@ import scala.io.{BufferedSource, Source}
 
 // 1
 final case class ManagedSource(path: String) {
+  
+  val listBuffer = new ListBuffer[String]
+  
   private val acquireSource: Task[BufferedSource] =
     ZIO.attempt(Source.fromFile(Paths.get(path).toFile))
 
@@ -37,7 +41,8 @@ final case class ManagedSource(path: String) {
   val source: RIO[Scope, BufferedSource] =
     ZIO.acquireReleaseWith(acquireSource)(releaseSource){ s =>
       val lines = s.getLines().toList
-      ZIO.log(lines.mkString("\n")).map(_ => s)
+      listBuffer ++= lines
+      ZIO.succeed(s)
     }
 }
 

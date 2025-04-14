@@ -8,7 +8,7 @@ object MyApp extends ZIOAppDefault {
     for {
       env    <- Reader.layer("src/main/resources/input.txt").build
       lines     <- env.get[Reader].getLines
-      _ <- ZIO.log(lines.mkString("\n")) // working
+//      _ <- ZIO.log(lines.mkString("\n")) // working
 //      _ <- ZIO.succeed(lines.map(list => ZIO.log(list.mkString("\n"))))
 
     } yield ()

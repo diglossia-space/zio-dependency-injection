@@ -5,8 +5,13 @@ import scala.io.{BufferedSource, Source}
 
 final case class Reader(source: RIO[Scope, BufferedSource]) {
 
-  val getLines: RIO[Scope, List[String]] =
-    source.map(_.getLines().toList)
+  val getLines: RIO[Scope, Unit] = 
+    for {
+      s <- source
+      lines = s.getLines().toList
+      _ <- ZIO.log(lines.mkString("\n"))    
+  } yield ()
+//    source.map(_.getLines().toList)
 }
 
 object Reader {
@@ -14,7 +19,7 @@ object Reader {
   val layer: String => TaskLayer[Reader] =
     path => ManagedSource.layer(path) >>> ManagedSource.readerLayer
 
-  val getLines: RIO[Reader, List[String]] =
+  val getLines: RIO[Reader, Unit] =
     ZIO.scoped {
       ZIO.serviceWithZIO[Reader](_.getLines)
     }

@@ -6,8 +6,11 @@ object MyApp extends ZIOAppDefault {
 
   val myAppLogic =
     for {
-      env    <- Reader.layer("src/main/resources/input.txt").build
-      lines     <- env.get[Reader].getLines
+      env <- ManagedSource.layer("src/main/resources/input.txt").build
+      _ <- env.get[ManagedSource].source
+      
+//      env    <- Reader.layer("src/main/resources/input.txt").build
+//      lines     <- env.get[Reader].getLines
 //      _ <- ZIO.log(lines.mkString("\n")) // working
 //      _ <- ZIO.succeed(lines.map(list => ZIO.log(list.mkString("\n"))))
 

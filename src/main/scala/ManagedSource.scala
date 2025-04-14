@@ -3,27 +3,27 @@ import zio.{IO, RIO, RLayer, Scope, Task, TaskLayer, UIO, ULayer, ZIO, ZLayer}
 import java.nio.file.Paths
 import scala.io.{BufferedSource, Source}
 
-final case class Reader(source: RIO[Scope, BufferedSource]) {
+//final case class Reader(source: RIO[Scope, BufferedSource]) {
+//
+//  val getLines: RIO[Scope, Unit] =
+//    for {
+//      s <- source
+//      lines = s.getLines().toList
+//      _ <- ZIO.log(lines.mkString("\n"))
+//  } yield ()
+////    source.map(_.getLines().toList)
+//}
 
-  val getLines: RIO[Scope, Unit] = 
-    for {
-      s <- source
-      lines = s.getLines().toList
-      _ <- ZIO.log(lines.mkString("\n"))    
-  } yield ()
-//    source.map(_.getLines().toList)
-}
-
-object Reader {
-
-  val layer: String => TaskLayer[Reader] =
-    path => ManagedSource.layer(path) >>> ManagedSource.readerLayer
-
-  val getLines: RIO[Reader, Unit] =
-    ZIO.scoped {
-      ZIO.serviceWithZIO[Reader](_.getLines)
-    }
-}
+//object Reader {
+//
+//  val layer: String => TaskLayer[Reader] =
+//    path => ManagedSource.layer(path) >>> ManagedSource.readerLayer
+//
+//  val getLines: RIO[Reader, Unit] =
+//    ZIO.scoped {
+//      ZIO.serviceWithZIO[Reader](_.getLines)
+//    }
+//}
 
 
 // 1
@@ -35,7 +35,10 @@ final case class ManagedSource(path: String) {
     s => ZIO.succeed(s.close())
 
   val source: RIO[Scope, BufferedSource] =
-    ZIO.acquireRelease(acquireSource)(releaseSource)
+    ZIO.acquireReleaseWith(acquireSource)(releaseSource){ s =>
+      val lines = s.getLines().toList
+      ZIO.log(lines.mkString("\n")).map(_ => s)
+    }
 }
 
 object ManagedSource {
@@ -43,10 +46,10 @@ object ManagedSource {
     path => ZLayer.succeed(ManagedSource(path))
 
 
-  val readerLayer: RLayer[ManagedSource, Reader] =
-    ZLayer {
-      ZIO.service[ManagedSource].map(ms => Reader(ms.source))
-    }
+//  val readerLayer: RLayer[ManagedSource, Reader] =
+//    ZLayer {
+//      ZIO.service[ManagedSource].map(ms => Reader(ms.source))
+//    }
 }
 
 

@@ -29,9 +29,9 @@ import scala.io.{BufferedSource, Source}
 
 // 1
 final case class ManagedSource(path: String) {
-  
+
   val listBuffer = new ListBuffer[String]
-  
+
   private val acquireSource: Task[BufferedSource] =
     ZIO.attempt(Source.fromFile(Paths.get(path).toFile))
 
@@ -42,7 +42,9 @@ final case class ManagedSource(path: String) {
     ZIO.acquireReleaseWith(acquireSource)(releaseSource){ s =>
       val lines = s.getLines().toList
       listBuffer ++= lines
-      ZIO.succeed(s)
+      ZIO.log(lines.mkString("\n")).map { _ =>
+        s
+      }
     }
 }
 
